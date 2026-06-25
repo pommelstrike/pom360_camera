@@ -1,13 +1,15 @@
 # Planetary Cycloidal Hub Gearbox — Technical Study
 
 A mechanical analysis of the **3D-printed Planetary Cycloidal Hub Gearbox**, an "RV"-style
-reducer: its two-stage architecture, measured part geometry, materials, and demonstrated
-durability. It is the engineering companion to [print-settings.md](print-settings.md) and
-[bill-of-materials.md](bill-of-materials.md).
+reducer: its two-stage architecture and physics, measured part geometry, materials, and a planned
+test programme. It is the engineering companion to [02-motor-drive-gears.md](02-motor-drive-gears.md)
+(installation on a NEMA 17) and [rv-gearbox-hardware.md](rv-gearbox-hardware.md) (bearing/fastener
+bill of materials).
 
 > **Method note.** All part dimensions, triangle counts, and STL encodings reported below were
 > obtained by parsing the supplied surface meshes directly (see [§4 Measured part data](#4-measured-part-data)).
-> The reduction ratio is discussed in [§6 Reduction ratio](#6-reduction-ratio).
+> The reduction ratio is discussed in [§6 Reduction ratio](#6-reduction-ratio); validation is a
+> forward-looking plan in [§7 Testing](#7-testing--to-be-conducted).
 
 ---
 
@@ -24,7 +26,7 @@ cycloidal disc pair — which yields very high reduction, high torque, and near-
 short axial package.
 
 **Native motor frame:** NEMA 23. The unit adapts to a NEMA 17 via a re-bored sun gear and an adapter
-plate (see [assembly-guide.md](assembly-guide.md)); no internal components change.
+plate (see [02-motor-drive-gears.md](02-motor-drive-gears.md)); no internal components change.
 
 ### At a glance
 
@@ -42,51 +44,96 @@ plate (see [assembly-guide.md](assembly-guide.md)); no internal components chang
 
 ---
 
-## 2. Operating principle — power flow
+## 2. Operating principle — physics & mechanics
 
-Motion passes through **two distinct reduction stages** within one housing:
+Motion passes through **two reduction stages** inside one housing. This section walks the kinematics
+and force flow stage by stage.
 
 ```
 motor shaft ─► sun gear ─► (3) planet spur gears ─► (3) eccentric cams ─► cycloidal discs ─► output hub
         \________ planetary stage ________/   \___________ cycloidal stage ___________/
 ```
 
-### Stage 1 — planetary (spur-gear) pre-reduction
+### 2.1 Two-stage topology
 
-- A **helical spur sun gear** mounts on the motor shaft
-  ([`Sun_Gear_NEMA17.stl`](../STL/Sun_Gear_NEMA17.stl)).
-- It meshes with **three spur gears**, one on each **eccentric cam**
-  ([`Eccentric_Cam_1.stl`](../STL/Eccentric_Cam_1.stl),
-  [`Eccentric_Cam_2.stl`](../STL/Eccentric_Cam_2.stl),
-  [`Eccentric_Cam_3.stl`](../STL/Eccentric_Cam_3.stl)).
-- This stage performs two functions simultaneously:
-  1. **first torque multiplication** (sun → planets), and
-  2. **phase-locking the three cams** so they share the cycloidal reaction load evenly (each cam
-     carries roughly one-third of it).
+The reducer chains a **sun/planet spur stage** with a **cycloidal pin stage**. The spur stage both
+reduces speed and synchronises the three eccentric cams; the cams then orbit the cycloidal discs,
+whose lobed profiles walk around fixed pins and drive the output hub. Because the stages are in
+series, the total ratio multiplies (see [§6](#6-reduction-ratio)).
 
-### Three-cam architecture
+### 2.2 Stage 1 — sun/planet spur stage and cam synchronisation
 
-A conventional cycloidal drive uses a **single** eccentric cam. Distributing the drive across
-**three** cams — synchronized through the spur gears — lowers the load on each cam and is expected
-to extend service life. This is the principal departure from a textbook cycloidal drive.
+- The motor carries a **helical spur sun gear** that meshes with **three planet gears**, one on each
+  eccentric cam
+  ([`Eccentric_Cam_1.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Eccentric_Cam_1.stl),
+  [`_2`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Eccentric_Cam_2.stl),
+  [`_3`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Eccentric_Cam_3.stl)).
+- The planet axes are **fixed in the housing** (there is no rotating carrier), so this is a simple
+  sun→planet external spur mesh rather than a full epicyclic. The cam (planet) speed is
+  `ω_cam = ω_motor · (Z_sun / Z_planet)`, in the opposite sense to the sun.
+- Meshing all three planets with a **single common sun phase-locks them** — the cams are held 120°
+  apart with no separate timing element.
+- Sharing the input across **three** parallel meshes cuts the tooth load on each to roughly a third
+  versus a single-cam cycloidal drive.
 
-### Stage 2 — cycloidal reduction
+### 2.3 The eccentric cam — converting spin into orbit
 
-- The rotating eccentric cams cause the two **cycloidal discs**
-  ([`Cycloidal_Disk_1.stl`](../STL/Cycloidal_Disk_1.stl),
-  [`Cycloidal_Disk_2.stl`](../STL/Cycloidal_Disk_2.stl))
-  to **orbit** (nutate) rather than spin.
-- Each disc's lobed profile rolls against fixed pins/rollers in the housing; an output hub carrying
-  its own pins engages the discs and **converts the orbital motion into slow, high-torque rotation**.
+Each eccentric cam is a gear whose **bore is offset from its pitch centre by an eccentricity *e***.
+When the cam spins about its gear centre (the fixed axis above), the offset bore — and the cycloidal
+disc pin riding in it — traces a circle of radius *e*. The disc pin therefore undergoes **pure
+orbital (translational) motion**: it circles the axis while the cam body simply rotates in place.
 
-A further distinguishing feature: in this design the cycloidal discs undergo **no net rotation** —
-they nutate in place. A conventional cycloidal drive instead rotates its disc slowly. Eliminating
-that disc rotation reduces the moving-part count.
+- This spin→orbit conversion is the core of any cycloidal drive: a fast rotation becomes a small,
+  precise circular "wobble" of the disc.
+- With **three cams at 120°**, the three radial force vectors sum to (nearly) zero, so the cycloidal
+  stage is **radially balanced** and imposes little net side load on the housing bearings.
 
-### Net effect
+### 2.4 Stage 2 — cycloidal disc and pin engagement
 
-Because the planetary stage feeds the cycloidal stage, the **total reduction is the product of the
-two**, producing a high-ratio, low-speed, high-torque, backlash-free output.
+- Each **cycloidal disc**
+  ([`Cycloidal_Disk_1.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Cycloidal_Disk_1.stl),
+  [`_2`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Cycloidal_Disk_2.stl))
+  has a lobed **trochoidal** profile (a hypotrochoid with an equidistant offset) that engages two
+  sets of cylindrical rollers: a **fixed ring** pressed into the housing, and a second set on the
+  **output hub**.
+- The fixed-ring pin count and the output-hub pin count differ by **exactly one**. As the cams orbit
+  the disc once, its profile must climb exactly one pin relative to the fixed ring; the only way to
+  satisfy both meshes is for the **output hub to rotate by one pin pitch**.
+- Hence the cycloidal-stage reduction is set by the **pin count** (≈ number of output pins, = ring
+  pins ∓ 1), giving a large ratio from a compact disc. The exact counts are parametric in the CAD
+  ([`RV.FCStd`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/CAD/RV.FCStd)).
+
+### 2.5 Why the discs nutate instead of spinning
+
+In a textbook cycloidal drive the disc both orbits **and** slowly counter-rotates, and the disc
+itself is the output. In this design the cycloidal discs are **constrained to pure nutation**
+(orbit, no net spin): the rotation a standard cycloidal disc would absorb is instead taken up by the
+**output hub**. Removing that disc rotation eliminates a degree of freedom and a moving part — the
+design's main simplification relative to a conventional cycloidal drive.
+
+### 2.6 Force and torque flow
+
+- Torque path: motor → sun → 3 planet/cams → 3 disc pins → cycloidal profile → output pins → hub.
+- Reaction torque is carried by the fixed ring into the housing. With three cams and **two
+  anti-phase discs** sharing the load, contact is spread across many lobes at once — the source of
+  the stage's high stiffness and low backlash.
+- The **two anti-phase discs** (180° apart) also cancel the first-order **radial unbalance** (shaking
+  force) of a single eccentric disc and double the contact area, smoothing the output.
+
+### 2.7 Backlash, stiffness and efficiency
+
+- **Backlash:** near-zero in principle — many lobes mesh simultaneously and the eccentric geometry
+  keeps them preloaded against the pins, so there is little play to take up on reversal. That is the
+  main reason the topology suits a repeatable motion axis.
+- **Stiffness:** high torsional stiffness from the broad, multi-lobe contact.
+- **Efficiency:** the rolling pin/roller contacts are low-friction, but the stage runs many bearings
+  with local sliding at the lobe roots, so efficiency is moderate (single-stage cycloidal drives are
+  typically ~70–90 %). The real figure should be **measured**, not assumed.
+
+### Net effect — reduction
+
+The total reduction is the product of the two stages and is high (tens-to-one); the exact value
+comes from the tooth/pin counts in the CAD (see [§6](#6-reduction-ratio)).
 
 ---
 
@@ -96,50 +143,50 @@ two**, producing a high-ratio, low-speed, high-torque, backlash-free output.
 |---|---|---|---|
 | Eccentric cams (×3) | resin-printed for tight tolerances | SLA | **SirayaTech Nylon Black** resin |
 | Cycloidal discs (×2) | laser-cut acrylic or FDM-printed | laser cutter / FDM | acrylic **or** PLA |
-| Housing, caps, hub, standoffs | FDM | FDM | **PLA+** (a full-PLA build is verified to run) |
+| Housing, caps, hub, standoffs | FDM | FDM | **PLA+** (an all-FDM build is a supported option) |
 | Sun gear | FDM (gear axis = Z) | FDM | PLA/PETG/ASA; Nylon ideal |
 | Fastening | M3/M5 socket screws into **heat-set inserts** | — | steel screws + brass inserts |
 
 - **Heat-set inserts** are used throughout, allowing repeated assembly and disassembly without
   stripping plastic threads.
-- **Bearings are deliberately standard, inexpensive sizes** (see [bill-of-materials.md](bill-of-materials.md)).
-- The complete unit has been rebuilt **entirely in FDM PLA**, confirming it is not dependent on
-  resin or laser tools.
+- **Bearings are deliberately standard, inexpensive sizes** (see [rv-gearbox-hardware.md](rv-gearbox-hardware.md)).
+- An **all-FDM PLA build is a supported option**, so the unit is not locked to resin or laser tools.
 
-Full slicing guidance: [print-settings.md](print-settings.md).
+Full slicing guidance: [02-motor-drive-gears.md](02-motor-drive-gears.md).
 
 ---
 
 ## 4. Measured part data
 
 Dimensions (X × Y × Z in mm), triangle counts, and STL encoding, obtained by parsing the meshes in
-[`../STL/`](../STL). The bounding-box Z axis is each part's own modelling axis — orient parts per
-print, not per this table.
+[`…/STL/STL/`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/).
+The bounding-box Z axis is each part's own modelling axis — orient parts per print, not per this
+table.
 
 ### Housing & structural
 
 | Part | File | X × Y × Z (mm) | Tris | Enc | Role |
 |---|---|---|---:|---|---|
-| Sealed base | [`Gearbox_Base_Closed.stl`](../STL/Gearbox_Base_Closed.stl) | 100.0 × 100.0 × 26.0 | 8 976 | bin | Closed housing body |
-| End / face cap | [`End_Cap.stl`](../STL/End_Cap.stl) | 67.0 × 67.0 × 19.4 | 12 012 | bin | Faceplate; through-bolts clamp the stack |
-| Hub retainer | [`Hub_Retainer.stl`](../STL/Hub_Retainer.stl) | 77.2 × 77.2 × 5.0 | 3 508 | bin | Retains the output hub |
-| Hub cap | [`Hub_Cap.stl`](../STL/Hub_Cap.stl) | 49.0 × 49.0 × 10.0 | 4 994 | bin | Output-hub cover |
+| Sealed base | [`Gearbox_Base_Closed.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Gearbox_Base_Closed.stl) | 100.0 × 100.0 × 26.0 | 8 976 | bin | Closed housing body |
+| End / face cap | [`End_Cap.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/End_Cap.stl) | 67.0 × 67.0 × 19.4 | 12 012 | bin | Faceplate; through-bolts clamp the stack |
+| Hub retainer | [`Hub_Retainer.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Hub_Retainer.stl) | 77.2 × 77.2 × 5.0 | 3 508 | bin | Retains the output hub |
+| Hub cap | [`Hub_Cap.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Hub_Cap.stl) | 49.0 × 49.0 × 10.0 | 4 994 | bin | Output-hub cover |
 
 ### Planetary / input stage
 
 | Part | File | X × Y × Z (mm) | Tris | Enc | Role |
 |---|---|---|---:|---|---|
-| Sun gear (NEMA 17) | [`Sun_Gear_NEMA17.stl`](../STL/Sun_Gear_NEMA17.stl) | 16.0 × 16.0 × 22.0 | 60 492 | bin | Motor pinion, re-bored to 5 mm + M3 grub screw |
-| Adapter plate | [`Adapter_NEMA17_to_NEMA23.stl`](../STL/Adapter_NEMA17_to_NEMA23.stl) | 60.0 × 60.0 × 8.0 | 7 802 | **ASCII** | NEMA 23 face ↔ NEMA 17 motor |
+| Sun gear (NEMA 17) | [`Sun_Gear_NEMA17.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Sun_Gear_NEMA17.stl) | 16.0 × 16.0 × 22.0 | 60 492 | bin | Motor pinion, re-bored to 5 mm + M3 grub screw |
+| Adapter plate | [`Adapter_NEMA17_to_NEMA23.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Adapter_NEMA17_to_NEMA23.stl) | 60.0 × 60.0 × 8.0 | 7 802 | **ASCII** | NEMA 23 face ↔ NEMA 17 motor |
 
 ### Eccentric cams (Stage-1 → Stage-2 link)
 
 | Part | File | X × Y × Z (mm) | Tris | Enc | Role |
 |---|---|---|---:|---|---|
-| Cam 1 | [`Eccentric_Cam_1.stl`](../STL/Eccentric_Cam_1.stl) | 26.0 × 26.0 × 35.7 | 83 768 | bin | Wobble driver, phase A |
-| Cam 2 | [`Eccentric_Cam_2.stl`](../STL/Eccentric_Cam_2.stl) | 26.0 × 26.0 × 35.7 | 85 074 | bin | Wobble driver, phase B (120°) |
-| Cam 3 | [`Eccentric_Cam_3.stl`](../STL/Eccentric_Cam_3.stl) | 26.0 × 26.0 × 35.7 | 86 380 | bin | Wobble driver, phase C (120°) |
-| Cam cap | [`Cam_Cap.stl`](../STL/Cam_Cap.stl) | 18.0 × 18.0 × 14.7 | 4 086 | bin | Forms the 2nd half of each eccentric cam (×3), bolted on |
+| Cam 1 | [`Eccentric_Cam_1.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Eccentric_Cam_1.stl) | 26.0 × 26.0 × 35.7 | 83 768 | bin | Wobble driver, phase A |
+| Cam 2 | [`Eccentric_Cam_2.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Eccentric_Cam_2.stl) | 26.0 × 26.0 × 35.7 | 85 074 | bin | Wobble driver, phase B (120°) |
+| Cam 3 | [`Eccentric_Cam_3.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Eccentric_Cam_3.stl) | 26.0 × 26.0 × 35.7 | 86 380 | bin | Wobble driver, phase C (120°) |
+| Cam cap | [`Cam_Cap.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Cam_Cap.stl) | 18.0 × 18.0 × 14.7 | 4 086 | bin | Forms the 2nd half of each eccentric cam (×3), bolted on |
 
 The three cams share **identical geometry**, phased 120° apart by the spur gears; the differing
 triangle counts are tessellation noise between the three exported files.
@@ -148,9 +195,9 @@ triangle counts are tessellation noise between the three exported files.
 
 | Part | File | X × Y × Z (mm) | Tris | Enc | Role |
 |---|---|---|---:|---|---|
-| Disc 1 | [`Cycloidal_Disk_1.stl`](../STL/Cycloidal_Disk_1.stl) | 73.88 × 73.89 × 6.35 | 20 836 | bin | Cycloidal disc (anti-phase pair A) |
-| Disc 2 | [`Cycloidal_Disk_2.stl`](../STL/Cycloidal_Disk_2.stl) | 74.08 × 74.08 × 6.35 | 25 388 | bin | Cycloidal disc (anti-phase pair B) |
-| Standoff | [`Cycloidal_Standoff.stl`](../STL/Cycloidal_Standoff.stl) | 67.0 × 67.0 × 24.7 | 9 490 | bin | Spacer stack between disc sets / cam halves |
+| Disc 1 | [`Cycloidal_Disk_1.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Cycloidal_Disk_1.stl) | 73.88 × 73.89 × 6.35 | 20 836 | bin | Cycloidal disc (anti-phase pair A) |
+| Disc 2 | [`Cycloidal_Disk_2.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Cycloidal_Disk_2.stl) | 74.08 × 74.08 × 6.35 | 25 388 | bin | Cycloidal disc (anti-phase pair B) |
+| Standoff | [`Cycloidal_Standoff.stl`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/STL/Cycloidal_Standoff.stl) | 67.0 × 67.0 × 24.7 | 9 490 | bin | Spacer stack between disc sets / cam halves |
 
 ---
 
@@ -158,8 +205,7 @@ triangle counts are tessellation noise between the three exported files.
 
 The reducer requires its own bearings and fasteners, independent of the motor — the NEMA 17
 adaptation removes none of them. Full quantities are in
-[bill-of-materials.md](bill-of-materials.md) (structured data:
-[../bom/hardware.csv](../bom/hardware.csv)). Summary:
+[rv-gearbox-hardware.md](rv-gearbox-hardware.md). Summary:
 
 | Class | Items |
 |---|---|
@@ -178,60 +224,72 @@ The total ratio equals **planetary stage × cycloidal stage** and is high (tens-
 
 The exact value is set by the **sun/planet tooth counts** and the **cycloidal lobe/pin counts**,
 which are defined parametrically in the FreeCAD source
-([`../cad/rv-reducer.FCStd`](../cad/rv-reducer.FCStd)). It **cannot be recovered reliably from the
-STL surface mesh**: the disc lobes are geometrically subtle and the exported rim tessellation is too
-coarse for a clean count, so a mesh-derived ratio should not be trusted. Measure it empirically after
-assembly:
+([`RV.FCStd`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/CAD/RV.FCStd)).
+It **cannot be recovered reliably from the STL surface mesh**: the disc lobes are geometrically
+subtle and the exported rim tessellation is too coarse for a clean count, so a mesh-derived ratio
+should not be trusted. Measure it empirically after assembly — the procedure is in
+[02-motor-drive-gears.md § "Reduction ratio — measure it"](02-motor-drive-gears.md):
 
 ```
 ratio = (input shaft turns) ÷ (output hub turns)
 ```
 
+Then set `gear_ratio` in [code/pi/config.yaml](code/pi/config.yaml).
+
 ---
 
-## 7. Durability — continuous-run endurance test
+## 7. Testing — to be conducted
 
-A continuous-run endurance test was conducted by fitting a large PLA wheel to the output and
-driving it outdoors, 24 h/day, on a slip-ring-fed test arm. Results (from the source build video):
+This section is reserved for **this project's own validation programme**. No results are reported
+here yet; tests and their outcomes will be added as they are performed.
 
-| Metric | Result |
-|---|---|
-| Continuous run time | **~2 weeks, 24/7** (stopped at ~2 weeks) |
-| Distance travelled | **≈ 35 miles** |
-| Motor revolutions | **> 3 000 000** input turns |
-| Weather | Sub-freezing nights (~5 days below freezing) + rain + snow |
-| Lubrication | Gel lubricant added **once** before the test; never re-applied |
-| Post-test wear | **Minimal** — cycloidal discs, helical spur gears, and output hub appeared essentially as-new |
+**Test platform:** the **NEMA 17** configuration (re-bored sun gear + adapter plate). All results are
+specific to this build and are not transferable from any NEMA 23 reference.
 
-**Caveat (per the source):** the test imposed **little output resistance**, so the gearbox operated
-**well below its maximum torque**. The result is primarily a **cycle-life / durability** finding
-(3 M+ revolutions on a 3D-printed spur-gear train with negligible wear), not a peak-torque rating.
+| Test | Method | Status |
+|---|---|---|
+| Reduction ratio | count input turns ÷ output turns (hand-turned, then powered) | To be conducted |
+| Backlash / lost motion | measure hub rotation on torque reversal under light load | To be conducted |
+| Torque capacity | incremental load / stall test at the output hub | To be conducted |
+| Continuous-run durability | 24/7 run at a representative load; log time, cycles, temperature | To be conducted |
+| Wear inspection | disassemble after the run; inspect cams, discs, pins, gears | To be conducted |
+| Efficiency | measure input vs output power under load | To be conducted |
+
+Results, conditions (material, lubrication, motor, ambient), and dates will be recorded here when
+available.
 
 ---
 
 ## 8. File inventory (source)
 
-Provided alongside this repo as the upstream "RV Reducer Files" bundle. In this repo the layout is:
+Provided in [`RV Reducer Files-…/`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/):
 
 ```
-pom360_camera/
-├── README.md
-├── STL/                      # 13 print-ready meshes (flat, one per part) — used in §4
-│   └── plates/               # .3mf slicer project files
-├── cad/                      # editable source
-│   ├── rv-reducer.FCStd      # FreeCAD parametric model (tooth/lobe counts live here)
-│   └── rv-reducer.step
-├── bom/
-│   └── hardware.csv          # structured buy-list
-└── docs/                     # this study + BOM + print/assembly guides
-    └── images/
+RV Reducer Files/
+├── CAD/
+│   ├── RV.FCStd                     ← FreeCAD parametric source (tooth/lobe counts live here)
+│   ├── update_rv_gearbox.FCStd
+│   └── RV_Reducer_Final_Assembly.step
+├── STL/                             ← per-part .stl + .3mf project plates
+│   └── STL/                         ← canonical per-part meshes (13 .stl files, used in §4)
+└── 3D Printed Planetary Cycloidal Hub Gearbox…en-orig.srt   ← source-video captions
 ```
+
+Notes:
+- The `STL/STL/` subfolder holds the **13 individual part meshes** referenced throughout this
+  document; the parent `STL/` also contains grouped `.3mf` print-plate files (e.g.
+  [`caps.3mf`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/caps.3mf),
+  [`cam_cycloco_disk.3mf`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/STL/cam_cycloco_disk.3mf)).
+- **Skip** `Sun_Gear` and `Gearbox_Base_Open` — replaced by the NEMA-17 sun gear and the closed base
+  (see [02-motor-drive-gears.md](02-motor-drive-gears.md)).
 
 ---
 
 ## 9. See also
 
-- [print-settings.md](print-settings.md) — materials, slicing, tolerances, ratio measurement.
-- [bill-of-materials.md](bill-of-materials.md) — full bearing + fastener BOM with quantities.
-- [assembly-guide.md](assembly-guide.md) — build order.
-- [../README.md](../README.md) — repo landing page.
+- [02-motor-drive-gears.md](02-motor-drive-gears.md) — motor/driver choice, NEMA 17 fitting, print
+  settings, empirical ratio measurement.
+- [rv-gearbox-hardware.md](rv-gearbox-hardware.md) — full bearing + fastener BOM with quantities.
+- [shopping-list.md](shopping-list.md) — what to buy, where.
+- [assembly-teardown-checklist.md](assembly-teardown-checklist.md) — build / re-build steps.
+- [README.md](README.md) — rig overview and how the reducer fits the overhead 360° spinner.
