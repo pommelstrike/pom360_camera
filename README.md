@@ -24,6 +24,22 @@ A DIY full-body 360° photo + video booth for 3–4 people. Stationary platform,
 
 Target arm radius: **1.8–2.0m** (~6 ft) for full-body framing of 3–4 people in portrait orientation.
 
+## Hardwear for STL Files after 3D Printing
+| Item                        | Qty |
+| -----------------------------| ----:|
+| **15×24×5 bearing**         | 9   |
+| **20×27×4 bearing**         | 3   |
+| **45×58×7 bearing**         | 1   |
+| **M5×12 button-head screw** | 12  |
+| **M5×20 button-head screw** | 4   |
+| **M5 nylock nut**           | 16  |
+| **M3×8 socket-cap screw**   | 4   |
+| **M3×10 cap screw**         | 4   |
+| **M3×16 cap screw**         | 4   |
+| **M3×20 cap screw**         | 4   |
+| **M3×25 cap screw**         | 4   |
+| **M3 heat-set insert**      | 16  |
+| **M3×6 set screw (grub)**   | 1   |
 ---
 
 ## System Architecture
