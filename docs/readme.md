@@ -2,7 +2,7 @@
 
 A mechanical analysis of the **3D-printed Planetary Cycloidal Hub Gearbox**, an "RV"-style
 reducer: its two-stage architecture and physics, measured part geometry, materials, and a planned
-test programme. It is the engineering companion to [02-motor-drive-gears.md](02-motor-drive-gears.md)
+test program. It is the engineering companion to [02-motor-drive-gears.md](02-motor-drive-gears.md)
 (installation on a NEMA 17) and [rv-gearbox-hardware.md](rv-gearbox-hardware.md) (bearing/fastener
 bill of materials).
 
@@ -225,9 +225,7 @@ The total ratio equals **planetary stage × cycloidal stage** and is high (tens-
 The exact value is set by the **sun/planet tooth counts** and the **cycloidal lobe/pin counts**,
 which are defined parametrically in the FreeCAD source
 ([`RV.FCStd`](../../RV%20Reducer%20Files-20260616T132445Z-3-001/RV%20Reducer%20Files/CAD/RV.FCStd)).
-It **cannot be recovered reliably from the STL surface mesh**: the disc lobes are geometrically
-subtle and the exported rim tessellation is too coarse for a clean count, so a mesh-derived ratio
-should not be trusted. Measure it empirically after assembly — the procedure is in
+Measure it empirically after assembly — the procedure is in
 [02-motor-drive-gears.md § "Reduction ratio — measure it"](02-motor-drive-gears.md):
 
 ```
@@ -240,8 +238,8 @@ Then set `gear_ratio` in [code/pi/config.yaml](code/pi/config.yaml).
 
 ## 7. Testing — to be conducted
 
-This section is reserved for **this project's own validation programme**. No results are reported
-here yet; tests and their outcomes will be added as they are performed.
+This section is reserved for **this project's own validation prograe**. 
+No Results are reported here yet; tests and their outcomes will be added as they are performed.
 
 **Test platform:** the **NEMA 17** configuration (re-bored sun gear + adapter plate). All results are
 specific to this build and are not transferable from any NEMA 23 reference.
